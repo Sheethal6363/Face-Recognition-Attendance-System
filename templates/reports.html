@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}VYRON — Attendance Analytics & Reports{% endblock %}
+{% block header_title %}Attendance Analytics{% endblock %}
+
+{% block content %}
+<!-- Filters Card -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header">
+    <div class="card-title">
+      <i class="fas fa-filter neon-cyan"></i>
+      <span>PARAMETRIC INTELLIGENCE QUERY</span>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <form method="GET" action="{{ url_for('attendance.reports_view') }}">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+        
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">START DATE</label>
+          <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">END DATE</label>
+          <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">DEPARTMENT</label>
+          <select name="department" class="form-select">
+            <option value="">ALL DEPARTMENTS</option>
+            {% for dept in departments %}
+              <option value="{{ dept }}" {% if dept_filter == dept %}selected{% endif %}>{{ dept }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">STUDENT USN CODE</label>
+          <input type="text" name="usn" class="form-control" placeholder="e.g. 4MH23CS139" value="{{ student_usn }}" style="text-transform: uppercase;">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
+        <a href="{{ url_for('attendance.reports_view') }}" class="btn btn-secondary btn-sm">RESET</a>
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i class="fas fa-chart-line"></i> GENERATE ANALYTICS
+        </button>
+        <a href="{{ url_for('attendance.export_attendance_csv', start_date=start_date, end_date=end_date, department=dept_filter, usn=student_usn) }}" class="btn btn-success btn-sm">
+          <i class="fas fa-file-csv"></i> EXPORT CSV REPORT
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Report Summary Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <span class="stat-label">TOTAL LOGGED SESSIONS</span>
+      <div class="stat-icon-wrapper stat-icon-cyan"><i class="fas fa-list-check"></i></div>
+    </div>
+    <div class="stat-value neon-cyan">{{ summary.total_records }}</div>
+    <div class="stat-subtext">AGGREGATE VERIFICATIONS</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <span class="stat-label">UNIQUE IDENTITIES PRESENT</span>
+      <div class="stat-icon-wrapper stat-icon-green"><i class="fas fa-user-check"></i></div>
+    </div>
+    <div class="stat-value neon-green">{{ summary.unique_present_students }}</div>
+    <div class="stat-subtext">DISTINCT SUBJECTS RECORDED</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <span class="stat-label">TOTAL ABSENT IDENTITIES</span>
+      <div class="stat-icon-wrapper stat-icon-pink"><i class="fas fa-user-xmark"></i></div>
+    </div>
+    <div class="stat-value neon-pink">{{ summary.total_absent }}</div>
+    <div class="stat-subtext">UNVERIFIED SUBJECTS</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <span class="stat-label">PERIOD ATTENDANCE RATE</span>
+      <div class="stat-icon-wrapper stat-icon-purple"><i class="fas fa-percent"></i></div>
+    </div>
+    <div class="stat-value neon-purple">{{ summary.attendance_percentage }}%</div>
+    <div class="stat-subtext">INTERVAL QUOTA MET</div>
+  </div>
+</div>
+
+<!-- Analytics Table -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      <i class="fas fa-table-list neon-cyan"></i>
+      <span>ANALYTICAL QUERY RESULTS</span>
+    </div>
+    <span class="badge badge-secondary">{{ records|length }} ENTRIES FOUND</span>
+  </div>
+
+  <div class="card-body" style="padding: 0;">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>IDENTITY NAME</th>
+            <th>USN CODE</th>
+            <th>DEPARTMENT</th>
+            <th>DATE</th>
+            <th>TIMESTAMP</th>
+            <th>STATUS</th>
+            <th>MATCH CONFIDENCE</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if records %}
+            {% for r in records %}
+            <tr>
+              <td><strong class="neon-cyan">{{ r.name }}</strong></td>
+              <td><code style="color: var(--neon-purple); font-weight: bold;">{{ r.usn }}</code></td>
+              <td>{{ r.student_ref.department if r.student_ref else 'N/A' }}</td>
+              <td>{{ r.date }}</td>
+              <td>{{ r.time }}</td>
+              <td><span class="badge badge-success">{{ r.status }}</span></td>
+              <td><strong style="color: var(--neon-cyan);">{{ r.confidence }}%</strong></td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 36px;">
+                <i class="fas fa-calendar-xmark neon-pink" style="font-size: 32px; margin-bottom: 10px; display: block;"></i>
+                No biometric records match the designated analytical interval.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

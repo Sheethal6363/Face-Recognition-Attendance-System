@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}VYRON — Identity Registry{% endblock %}
+{% block header_title %}Identity Registry{% endblock %}
+
+{% block content %}
+<!-- Search & Filter Card -->
+<div class="card" style="margin-bottom: 20px;">
+  <div class="card-body" style="padding: 16px 20px;">
+    <form method="GET" action="{{ url_for('students.students_list') }}" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+      <div style="flex: 2; min-width: 200px;">
+        <input type="text" name="q" class="form-control" placeholder="QUERY IDENTITY BY NAME OR USN..." value="{{ search_query }}">
+      </div>
+
+      <div style="flex: 1; min-width: 160px;">
+        <select name="department" class="form-select">
+          <option value="">ALL DEPARTMENTS</option>
+          {% for dept in departments %}
+            <option value="{{ dept }}" {% if dept_filter == dept %}selected{% endif %}>{{ dept }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="flex: 1; min-width: 120px;">
+        <select name="semester" class="form-select">
+          <option value="">ALL SEMESTERS</option>
+          {% for s in range(1, 9) %}
+            <option value="{{ s }}" {% if sem_filter == s|string %}selected{% endif %}>Sem {{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="flex: 1; min-width: 120px;">
+        <select name="status" class="form-select">
+          <option value="">ALL STATUS</option>
+          <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-sm" style="padding: 10px 16px;">
+        <i class="fas fa-filter"></i> FILTER
+      </button>
+
+      {% if search_query or dept_filter or sem_filter or status_filter %}
+        <a href="{{ url_for('students.students_list') }}" class="btn btn-secondary btn-sm" style="padding: 10px 16px;">
+          <i class="fas fa-times"></i> RESET
+        </a>
+      {% endif %}
+
+      <a href="{{ url_for('students.register_student') }}" class="btn btn-success btn-sm" style="padding: 10px 18px; margin-left: auto;">
+        <i class="fas fa-user-plus"></i> ENROLL NEW IDENTITY
+      </a>
+    </form>
+  </div>
+</div>
+
+<!-- Enrolled Identities Registry Table -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      <i class="fas fa-address-book neon-cyan"></i>
+      <span>REGISTERED BIOMETRIC IDENTITIES ({{ students_data|length }})</span>
+    </div>
+  </div>
+
+  <div class="card-body" style="padding: 0;">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>BIOMETRIC PHOTO</th>
+            <th>IDENTITY NAME</th>
+            <th>USN CODE</th>
+            <th>DEPARTMENT</th>
+            <th>SEM / SEC</th>
+            <th>ATTENDANCE %</th>
+            <th>STATUS</th>
+            <th style="text-align: right;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if students_data %}
+            {% for item in students_data %}
+            {% set s = item.student %}
+            <tr>
+              <td>
+                {% if s.face_image %}
+                  <img src="{{ url_for('students.get_face_image', filename=s.face_image) }}" alt="{{ s.name }}" style="width: 44px; height: 44px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--neon-cyan); box-shadow: 0 0 8px rgba(0, 245, 255, 0.25);">
+                {% else %}
+                  <div style="width: 44px; height: 44px; border-radius: var(--radius-sm); background: var(--bg-surface); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                    <i class="fas fa-user"></i>
+                  </div>
+                {% endif %}
+              </td>
+              <td>
+                <strong><a href="{{ url_for('students.student_details', student_id=s.id) }}" class="neon-cyan" style="text-decoration: none;">{{ s.name }}</a></strong>
+                {% if s.email %}
+                  <div style="font-size: 11.5px; color: var(--text-muted); font-family: 'Rajdhani', sans-serif;">{{ s.email }}</div>
+                {% endif %}
+              </td>
+              <td><code style="color: var(--neon-purple); font-weight: bold;">{{ s.usn }}</code></td>
+              <td>{{ s.department }}</td>
+              <td>Sem {{ s.semester }} - {{ s.section }}</td>
+              <td>
+                <strong style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 13px;">{{ item.attendance_percentage }}%</strong>
+                <div style="font-size: 11px; color: var(--text-muted); font-family: 'Rajdhani', sans-serif;">({{ item.present_count }} Verified Logs)</div>
+              </td>
+              <td>
+                {% if s.is_active %}
+                  <span class="badge badge-success">Active</span>
+                {% else %}
+                  <span class="badge badge-danger">Deactivated</span>
+                {% endif %}
+              </td>
+              <td style="text-align: right;">
+                <div style="display: inline-flex; gap: 6px;">
+                  <a href="{{ url_for('students.student_details', student_id=s.id) }}" class="btn btn-secondary btn-sm" title="View Identity Dossier">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  
+                  <form method="POST" action="{{ url_for('students.toggle_status', student_id=s.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-secondary btn-sm" title="Toggle Active Status">
+                      <i class="fas {% if s.is_active %}fa-user-slash{% else %}fa-user-check{% endif %}"></i>
+                    </button>
+                  </form>
+
+                  <form method="POST" action="{{ url_for('students.delete_student', student_id=s.id) }}" style="display: inline;" onsubmit="return confirm('WARNING: Permanently purge identity {{ s.name }} and all associated biometric records from the database?');">
+                    <button type="submit" class="btn btn-danger btn-sm" title="Purge Record">
+                      <i class="fas fa-trash-can"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 36px;">
+                <i class="fas fa-user-slash neon-pink" style="font-size: 32px; margin-bottom: 10px; display: block;"></i>
+                No biometric identities found matching the query criteria.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" class="dark-theme">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}VYRON — AI Biometric Attendance System{% endblock %}</title>
+  
+  <!-- Google Fonts: Orbitron, Rajdhani, Space Grotesk, Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;600;700;800;900&family=Rajdhani:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Cyberpunk Design System Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <div class="app-container">
+    {% if session.get('admin_logged_in') %}
+    <!-- Futuristic Cyberpunk Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-symbol">
+          <i class="fas fa-fingerprint"></i>
+        </div>
+        <div class="brand-text-container">
+          <div class="brand-logo-text">
+            <span class="part-vyron">VYRON</span>
+          </div>
+          <div class="brand-tagline">AI Biometric System</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-category">Core Operations</div>
+        <a href="{{ url_for('dashboard.dashboard_view') }}" class="nav-link {% if request.endpoint == 'dashboard.dashboard_view' %}active{% endif %}">
+          <i class="fas fa-microchip"></i>
+          <span>Command Center</span>
+        </a>
+        <a href="{{ url_for('attendance.live_attendance') }}" class="nav-link {% if request.endpoint == 'attendance.live_attendance' %}active{% endif %}">
+          <i class="fas fa-camera"></i>
+          <span>Live Recognition</span>
+        </a>
+        
+        <div class="nav-category">Biometric Registry</div>
+        <a href="{{ url_for('students.register_student') }}" class="nav-link {% if request.endpoint == 'students.register_student' %}active{% endif %}">
+          <i class="fas fa-user-plus"></i>
+          <span>Register Identity</span>
+        </a>
+        <a href="{{ url_for('students.students_list') }}" class="nav-link {% if request.endpoint in ['students.students_list', 'students.student_details'] %}active{% endif %}">
+          <i class="fas fa-users"></i>
+          <span>Identity Registry</span>
+        </a>
+
+        <div class="nav-category">Intelligence & Logs</div>
+        <a href="{{ url_for('attendance.attendance_list') }}" class="nav-link {% if request.endpoint == 'attendance.attendance_list' %}active{% endif %}">
+          <i class="fas fa-calendar-check"></i>
+          <span>Attendance Intelligence</span>
+        </a>
+        <a href="{{ url_for('attendance.reports_view') }}" class="nav-link {% if request.endpoint == 'attendance.reports_view' %}active{% endif %}">
+          <i class="fas fa-chart-line"></i>
+          <span>Analytics & Reports</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-hud-card">
+          <div class="user-avatar-hud"><i class="fas fa-shield-halved"></i></div>
+          <div class="user-info">
+            <div class="user-name">{{ session.get('admin_username', 'COMMANDER') }}</div>
+            <div class="system-status-indicator">
+              <span class="status-pulse-dot"></span>
+              <span>SYSTEM ONLINE</span>
+            </div>
+          </div>
+          <a href="{{ url_for('auth.logout') }}" title="Disconnect Session" style="color: var(--text-muted); margin-left: auto; font-size: 15px;">
+            <i class="fas fa-power-off"></i>
+          </a>
+        </div>
+      </div>
+    </aside>
+    {% endif %}
+
+    <!-- Main Command Area -->
+    <main class="main-content" {% if not session.get('admin_logged_in') %}style="margin-left: 0;"{% endif %}>
+      {% if session.get('admin_logged_in') %}
+      <!-- Top Command Bar -->
+      <header class="top-command-bar">
+        <div class="top-bar-left">
+          <button class="menu-toggle-btn" id="sidebarToggle" aria-label="Toggle Navigation">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="header-title-hud">
+            <span class="hud-badge-prefix">VYRON</span>
+            <span>{% block header_title %}Command Center{% endblock %}</span>
+          </div>
+        </div>
+
+        <div class="top-bar-right">
+          <!-- Network Status Chip -->
+          <div class="hud-status-chip">
+            <span class="status-pulse-dot"></span>
+            <span>NETWORK: SECURE</span>
+          </div>
+
+          <!-- Cyberpunk Theme Switcher -->
+          <button class="theme-toggle-cyber" id="themeToggleBtn" title="Switch Theme">
+            <i class="fas fa-moon neon-cyan" id="themeIcon"></i>
+            <span id="themeModeLabel">CYBER DARK</span>
+          </button>
+
+          <!-- Logout Button -->
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-power-off"></i>
+            <span>Disconnect</span>
+          </a>
+        </div>
+      </header>
+      {% endif %}
+
+      <div class="page-body">
+        <!-- Flash Messages with HUD style -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                <span><i class="fas fa-terminal" style="margin-right: 8px;"></i> {{ message }}</span>
+                <button type="button" class="alert-close">&times;</button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <!-- Main JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

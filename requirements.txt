@@ -1,0 +1,12 @@
+Flask>=3.0.0
+Flask-SQLAlchemy>=3.1.1
+Werkzeug>=3.0.1
+opencv-python>=4.8.0
+numpy>=1.24.0
+pandas>=2.0.0
+pytest>=7.4.0
+python-dotenv>=1.0.0
+Pillow>=10.0.0
+# Note: face_recognition requires dlib. On systems where dlib is installed, face_recognition is used.
+# If face_recognition is not yet installed on Windows, OpenCV Haar Cascade + LBPH is also built-in as an automated robust fallback!
+face-recognition>=1.3.0

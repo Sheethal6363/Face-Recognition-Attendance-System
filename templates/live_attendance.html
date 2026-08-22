@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}VYRON — Live Biometric Recognition Scanner{% endblock %}
+{% block header_title %}Live Recognition Console{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: start;">
+  
+  <!-- Left: Live Optical Biometric Scanner HUD -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-camera neon-cyan"></i>
+          <span>REAL-TIME BIOMETRIC SCANNER HUD</span>
+        </div>
+        <div id="liveBadge" class="badge badge-success">
+          <span class="status-pulse-dot"></span> SCANNER ACTIVE
+        </div>
+      </div>
+
+      <div class="card-body" style="padding: 18px; text-align: center;">
+        <div id="scannerStatus" class="alert alert-info" style="display: none; text-align: left; margin-bottom: 12px;"></div>
+
+        <!-- Biometric Scanner HUD Box -->
+        <div class="biometric-scanner-hud" style="max-width: 100%;">
+          <!-- Corner Brackets -->
+          <div class="hud-corner hud-corner-tl"></div>
+          <div class="hud-corner hud-corner-tr"></div>
+          <div class="hud-corner hud-corner-bl"></div>
+          <div class="hud-corner hud-corner-br"></div>
+
+          <!-- Active Scan Line -->
+          <div class="scan-line" id="hudLiveScanLine"></div>
+
+          <video id="liveWebcamVideo" class="camera-video" autoplay playsinline muted></video>
+          <canvas id="overlayCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 8;"></canvas>
+
+          <div class="hud-telemetry-overlay">
+            <span>OPTICAL SENSOR: 30 FPS</span>
+            <span>AI NEURAL ENGINE: ONLINE</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 18px; justify-content: center; flex-wrap: wrap;">
+          <button type="button" id="startLiveBtn" class="btn btn-primary btn-sm">
+            <i class="fas fa-play"></i> START SCANNER
+          </button>
+          <button type="button" id="stopLiveBtn" class="btn btn-secondary btn-sm" style="display: none;">
+            <i class="fas fa-pause"></i> PAUSE SCANNER
+          </button>
+          <button type="button" id="switchServerStreamBtn" class="btn btn-secondary btn-sm" title="Toggle Direct Server MJPEG Stream">
+            <i class="fas fa-server"></i> SERVER STREAM MODE
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Biometric Identity Verification Card -->
+    <div class="card" id="detectionResultCard" style="background: var(--bg-card); border-left: 4px solid var(--neon-cyan);">
+      <div class="card-body" style="padding: 18px 22px;">
+        <div style="font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 1.5px;">
+          [ BIOMETRIC VERIFICATION TELEMETRY ]
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 id="detName" class="neon-cyan" style="font-size: 20px; font-weight: 800; margin-bottom: 2px;">
+              AWAITING BIOMETRIC SENSOR TARGET...
+            </h3>
+            <div id="detUsn" style="font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 600; color: var(--text-secondary);">
+              USN CODE: <code>--</code>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div id="detConfidence" class="neon-purple" style="font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: 800;">
+              -- %
+            </div>
+            <div id="detStatusBadge" style="margin-top: 4px;">
+              <span class="badge badge-secondary">IDLE SENSOR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Today's Verified Check-ins List -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-circle-check neon-green"></i>
+          <span>TODAY'S VERIFIED CHECK-INS</span>
+        </div>
+        <span class="badge badge-primary" id="todayCountBadge">{{ stats.present_today }} VERIFIED</span>
+      </div>
+
+      <div class="card-body" style="padding: 0; max-height: 500px; overflow-y: auto;">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>IDENTITY</th>
+                <th>TIME</th>
+                <th>CONFIDENCE</th>
+              </tr>
+            </thead>
+            <tbody id="liveCheckinsList">
+              {% if stats.recent_attendance %}
+                {% for item in stats.recent_attendance %}
+                <tr>
+                  <td>
+                    <strong class="neon-cyan">{{ item.name }}</strong>
+                    <div style="font-size: 11px; color: var(--neon-purple); font-weight: bold; font-family: 'Rajdhani', sans-serif;">{{ item.usn }}</div>
+                  </td>
+                  <td><small>{{ item.time }}</small></td>
+                  <td><span class="badge badge-success">{{ item.confidence }}%</span></td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr id="emptyCheckinsRow">
+                  <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 28px;">
+                    No biometric check-ins logged for current cycle.
+                  </td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI/ML Neural Architecture Pipeline Card -->
+    <div class="card" style="padding: 20px; font-family: 'Rajdhani', sans-serif; font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+      <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--neon-cyan); letter-spacing: 1px;">
+        <i class="fas fa-brain neon-cyan" style="margin-right: 6px;"></i> VYRON AI RECOGNITION PIPELINE
+      </h4>
+      <p>1. <strong>Optical Capture:</strong> High-performance 0.25x frame downsampling (30+ FPS).</p>
+      <p>2. <strong>Vectorization:</strong> 128-dimensional Deep Metric face encoding extraction.</p>
+      <p>3. <strong>Neural Matching:</strong> Euclidean distance comparison against cached identity vectors.</p>
+      <p>4. <strong>Anti-Proxy Protection:</strong> In-memory 30s cooldown + DB unique daily constraint.</p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const video = document.getElementById('liveWebcamVideo');
+  const overlayCanvas = document.getElementById('overlayCanvas');
+  const startBtn = document.getElementById('startLiveBtn');
+  const stopBtn = document.getElementById('stopLiveBtn');
+  const statusEl = document.getElementById('scannerStatus');
+  const detName = document.getElementById('detName');
+  const detUsn = document.getElementById('detUsn');
+  const detConf = document.getElementById('detConfidence');
+  const detBadge = document.getElementById('detStatusBadge');
+  const liveBadge = document.getElementById('liveBadge');
+  const checkinsList = document.getElementById('liveCheckinsList');
+  const countBadge = document.getElementById('todayCountBadge');
+  const switchServerBtn = document.getElementById('switchServerStreamBtn');
+  const scanLine = document.getElementById('hudLiveScanLine');
+
+  let isServerStream = false;
+
+  const camManager = new FaceCameraManager({
+    videoId: 'liveWebcamVideo',
+    canvasId: 'overlayCanvas',
+    statusId: 'scannerStatus',
+    scanLineId: 'hudLiveScanLine'
+  });
+
+  async function startLiveScanningFlow() {
+    const started = await camManager.startCamera();
+    if (started) {
+      startBtn.style.display = 'none';
+      stopBtn.style.display = 'inline-flex';
+      liveBadge.className = 'badge badge-success';
+      liveBadge.innerHTML = '<span class="status-pulse-dot"></span> SCANNER ACTIVE';
+
+      camManager.startLiveScanning((result) => {
+        handleRecognitionResult(result);
+      }, 700);
+    }
+  }
+
+  function drawBoundingBoxes(faces) {
+    if (!overlayCanvas || !video) return;
+    const ctx = overlayCanvas.getContext('2d');
+    overlayCanvas.width = video.videoWidth || 640;
+    overlayCanvas.height = video.videoHeight || 480;
+    ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+    faces.forEach(f => {
+      const [top, right, bottom, left] = f.box;
+      const w = right - left;
+      const h = bottom - top;
+
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = f.recognized ? '#00F5FF' : '#FF2BD6';
+      ctx.strokeRect(left, top, w, h);
+
+      // Corner accent brackets on box
+      ctx.strokeStyle = f.recognized ? '#39FF88' : '#FF3366';
+      ctx.lineWidth = 3.5;
+      const cornerLen = 12;
+      // Top-Left
+      ctx.beginPath(); ctx.moveTo(left, top + cornerLen); ctx.lineTo(left, top); ctx.lineTo(left + cornerLen, top); ctx.stroke();
+      // Top-Right
+      ctx.beginPath(); ctx.moveTo(right - cornerLen, top); ctx.lineTo(right, top); ctx.lineTo(right, top + cornerLen); ctx.stroke();
+      // Bottom-Left
+      ctx.beginPath(); ctx.moveTo(left, bottom - cornerLen); ctx.lineTo(left, bottom); ctx.lineTo(left + cornerLen, bottom); ctx.stroke();
+      // Bottom-Right
+      ctx.beginPath(); ctx.moveTo(right - cornerLen, bottom); ctx.lineTo(right, bottom); ctx.lineTo(right, bottom - cornerLen); ctx.stroke();
+
+      // Label background banner
+      ctx.fillStyle = f.recognized ? 'rgba(0, 245, 255, 0.9)' : 'rgba(255, 43, 214, 0.9)';
+      const labelText = f.recognized ? `${f.name} [${f.confidence}%]` : 'UNKNOWN IDENTITY';
+      ctx.font = 'bold 12px Orbitron, sans-serif';
+      const textWidth = ctx.measureText(labelText).width;
+      ctx.fillRect(left, Math.max(0, top - 24), textWidth + 14, 24);
+
+      // Label text
+      ctx.fillStyle = '#050510';
+      ctx.fillText(labelText, left + 7, Math.max(16, top - 7));
+    });
+  }
+
+  function handleRecognitionResult(result) {
+    if (!result || !result.faces) return;
+    const faces = result.faces;
+    drawBoundingBoxes(faces);
+
+    if (faces.length > 0) {
+      const topFace = faces[0];
+      if (topFace.recognized) {
+        detName.textContent = topFace.name;
+        detUsn.innerHTML = `USN CODE: <code>${topFace.usn}</code> (${topFace.department || ''})`;
+        detConf.textContent = `${topFace.confidence}%`;
+
+        if (topFace.is_new_mark) {
+          detBadge.innerHTML = '<span class="badge badge-success"><i class="fas fa-circle-check"></i> ATTENDANCE VERIFIED & MARKED</span>';
+        } else {
+          detBadge.innerHTML = `<span class="badge badge-info"><i class="fas fa-circle-info"></i> ${topFace.attendance_status}</span>`;
+        }
+      } else {
+        detName.textContent = 'UNKNOWN SUBJECT';
+        detUsn.innerHTML = 'USN CODE: <code>UNREGISTERED</code>';
+        detConf.textContent = '0%';
+        detBadge.innerHTML = '<span class="badge badge-danger"><i class="fas fa-triangle-exclamation"></i> UNKNOWN BIOMETRIC PROFILE</span>';
+      }
+    }
+
+    // Prepend newly marked check-ins to the list
+    if (result.marked_students && result.marked_students.length > 0) {
+      result.marked_students.forEach(st => {
+        const emptyRow = document.getElementById('emptyCheckinsRow');
+        if (emptyRow) emptyRow.remove();
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <strong class="neon-cyan">${st.name}</strong>
+            <div style="font-size: 11px; color: var(--neon-purple); font-weight: bold; font-family: 'Rajdhani', sans-serif;">${st.usn}</div>
+          </td>
+          <td><small>${st.time}</small></td>
+          <td><span class="badge badge-success">${st.confidence}%</span></td>
+        `;
+        checkinsList.prepend(row);
+      });
+    }
+  }
+
+  startBtn.addEventListener('click', startLiveScanningFlow);
+
+  stopBtn.addEventListener('click', () => {
+    camManager.stopCamera();
+    startBtn.style.display = 'inline-flex';
+    stopBtn.style.display = 'none';
+    liveBadge.className = 'badge badge-secondary';
+    liveBadge.innerHTML = '<i class="fas fa-pause"></i> SCANNER PAUSED';
+  });
+
+  // Switch to Server MJPEG Stream Mode
+  switchServerBtn.addEventListener('click', () => {
+    if (!isServerStream) {
+      camManager.stopCamera();
+      video.style.display = 'none';
+      overlayCanvas.style.display = 'none';
+      if (scanLine) scanLine.style.display = 'none';
+      
+      let img = document.getElementById('serverStreamImg');
+      if (!img) {
+        img = document.createElement('img');
+        img.id = 'serverStreamImg';
+        img.style.width = '100%';
+        img.style.borderRadius = 'var(--radius-lg)';
+        img.src = "{{ url_for('attendance.video_feed') }}";
+        video.parentNode.appendChild(img);
+      } else {
+        img.style.display = 'block';
+        img.src = "{{ url_for('attendance.video_feed') }}";
+      }
+
+      switchServerBtn.innerHTML = '<i class="fas fa-desktop"></i> CLIENT SENSOR MODE';
+      isServerStream = true;
+    } else {
+      const img = document.getElementById('serverStreamImg');
+      if (img) img.style.display = 'none';
+      video.style.display = 'block';
+      overlayCanvas.style.display = 'block';
+      if (scanLine) scanLine.style.display = 'block';
+      startLiveScanningFlow();
+      switchServerBtn.innerHTML = '<i class="fas fa-server"></i> SERVER STREAM MODE';
+      isServerStream = false;
+    }
+  });
+
+  await startLiveScanningFlow();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}VYRON — {{ student.name }} Profile Dossier{% endblock %}
+{% block header_title %}Identity Profile Dossier{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+  <a href="{{ url_for('students.students_list') }}" class="btn btn-secondary btn-sm">
+    <i class="fas fa-arrow-left"></i> BACK TO REGISTRY
+  </a>
+</div>
+
+<!-- Profile & Metric Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 28px;">
+  
+  <!-- Left Card: Biometric Identity Dossier & Edit -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <i class="fas fa-id-badge neon-cyan"></i>
+        <span>BIOMETRIC IDENTITY DOSSIER</span>
+      </div>
+      {% if student.is_active %}
+        <span class="badge badge-success">Active Status</span>
+      {% else %}
+        <span class="badge badge-danger">Deactivated</span>
+      {% endif %}
+    </div>
+
+    <div class="card-body">
+      <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 24px;">
+        {% if student.face_image %}
+          <img src="{{ url_for('students.get_face_image', filename=student.face_image) }}" alt="{{ student.name }}" style="width: 90px; height: 90px; border-radius: var(--radius-sm); object-fit: cover; border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 245, 255, 0.4);">
+        {% else %}
+          <div style="width: 90px; height: 90px; border-radius: var(--radius-sm); background: var(--bg-surface); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--text-muted);">
+            <i class="fas fa-user"></i>
+          </div>
+        {% endif %}
+        <div>
+          <h2 class="neon-cyan" style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">{{ student.name }}</h2>
+          <div style="font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 700; color: var(--neon-purple);">USN: <code>{{ student.usn }}</code></div>
+          <div style="font-family: 'Rajdhani', sans-serif; font-size: 12px; color: var(--text-muted); margin-top: 4px;">ENROLLED: {{ student.created_at.strftime('%d %b %Y') if student.created_at else 'N/A' }}</div>
+        </div>
+      </div>
+
+      <form method="POST" action="{{ url_for('students.edit_student', student_id=student.id) }}">
+        <div class="form-group">
+          <label class="form-label">Full Identity Name</label>
+          <input type="text" name="name" class="form-control" value="{{ student.name }}" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <input type="text" name="department" class="form-control" value="{{ student.department }}" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Semester</label>
+            <input type="number" name="semester" class="form-control" value="{{ student.semester }}" min="1" max="8" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Section</label>
+            <input type="text" name="section" class="form-control" value="{{ student.section }}" maxlength="2" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Email Channel</label>
+            <input type="email" name="email" class="form-control" value="{{ student.email or '' }}">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Phone Contact</label>
+            <input type="tel" name="phone" class="form-control" value="{{ student.phone or '' }}">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-sm" style="margin-top: 10px;">
+          <i class="fas fa-floppy-disk"></i> UPDATE DOSSIER
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right: Attendance Summary Cards -->
+  <div>
+    <div class="stats-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 24px;">
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <span class="stat-label">TOTAL SESSIONS</span>
+          <div class="stat-icon-wrapper stat-icon-cyan"><i class="fas fa-calendar-days"></i></div>
+        </div>
+        <div class="stat-value neon-cyan">{{ total_classes }}</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <span class="stat-label">PRESENT LOGS</span>
+          <div class="stat-icon-wrapper stat-icon-green"><i class="fas fa-circle-check"></i></div>
+        </div>
+        <div class="stat-value neon-green">{{ present_days }}</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <span class="stat-label">ABSENT LOGS</span>
+          <div class="stat-icon-wrapper stat-icon-pink"><i class="fas fa-circle-xmark"></i></div>
+        </div>
+        <div class="stat-value neon-pink">{{ absent_days }}</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <span class="stat-label">ATTENDANCE %</span>
+          <div class="stat-icon-wrapper stat-icon-purple"><i class="fas fa-percent"></i></div>
+        </div>
+        <div class="stat-value neon-purple">{{ attendance_percentage }}%</div>
+      </div>
+    </div>
+
+    <!-- Eligibility Status HUD -->
+    <div class="card" style="padding: 20px; background: var(--bg-card); border-left: 4px solid {% if attendance_percentage >= 75.0 %}var(--neon-green){% else %}var(--neon-red){% endif %};">
+      <div style="font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+        EXAMINATION ELIGIBILITY PROTOCOL
+      </div>
+      {% if attendance_percentage >= 75.0 %}
+        <div style="display: flex; align-items: center; gap: 12px; color: var(--neon-green); font-weight: 700; font-family: 'Rajdhani', sans-serif; font-size: 16px;">
+          <i class="fas fa-shield-check" style="font-size: 24px;"></i>
+          <span>ELIGIBLE // CRITERIA MET (&ge; 75.0% VERIFIED ATTENDANCE)</span>
+        </div>
+      {% else %}
+        <div style="display: flex; align-items: center; gap: 12px; color: var(--neon-red); font-weight: 700; font-family: 'Rajdhani', sans-serif; font-size: 16px;">
+          <i class="fas fa-triangle-exclamation" style="font-size: 24px;"></i>
+          <span>SHORTAGE ALERT // ATTENDANCE DEFICIT (&lt; 75.0% MINIMUM REQUIRED)</span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Attendance History Log -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      <i class="fas fa-clock-rotate-left neon-cyan"></i>
+      <span>BIOMETRIC VERIFICATION LOG HISTORY</span>
+    </div>
+  </div>
+
+  <div class="card-body" style="padding: 0;">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>SESSION DATE</th>
+            <th>TIMESTAMP</th>
+            <th>VERIFICATION STATUS</th>
+            <th>AI CONFIDENCE MATCH</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if history %}
+            {% for item in history %}
+            <tr>
+              <td><strong>{{ item.date }}</strong></td>
+              <td>{{ item.time }}</td>
+              <td><span class="badge badge-success"><i class="fas fa-circle-check"></i> {{ item.status }}</span></td>
+              <td><strong class="neon-cyan">{{ item.confidence }}%</strong></td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                No historical biometric logs found for this identity profile.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

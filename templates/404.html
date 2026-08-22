@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ error_title or "404 - ROUTE NOT FOUND" }} — VYRON{% endblock %}
+{% block header_title %}System Anomaly{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 60px 20px;">
+  <div class="neon-pink" style="font-family: 'Orbitron', sans-serif; font-size: 80px; font-weight: 900; margin-bottom: 12px; letter-spacing: -2px;">
+    {{ (error_title or "404").split(" ")[0] }}
+  </div>
+  <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 12px; font-family: 'Orbitron', sans-serif; color: var(--text-primary);">
+    {{ error_title or "SYSTEM ROUTE ANOMALY // 404 NOT FOUND" }}
+  </h2>
+  <p style="color: var(--text-muted); max-width: 520px; margin: 0 auto 30px auto; font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600;">
+    {{ error_msg or "The requested neural network endpoint could not be resolved or security clearance is restricted." }}
+  </p>
+  <a href="{{ url_for('dashboard.dashboard_view') }}" class="btn btn-primary" style="padding: 12px 30px;">
+    <i class="fas fa-microchip"></i> RETURN TO COMMAND CENTER
+  </a>
+</div>
+{% endblock %}

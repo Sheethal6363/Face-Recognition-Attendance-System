@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}VYRON — Command Center{% endblock %}
+{% block header_title %}Biometric Command Center{% endblock %}
+
+{% block content %}
+<!-- Futuristic Hero Command Banner -->
+<div class="hero-command-banner">
+  <div class="hero-content">
+    <div>
+      <h2 class="hero-title">
+        <i class="fas fa-microchip neon-cyan"></i>
+        <span>BIOMETRIC COMMAND CENTER</span>
+      </h2>
+      <p class="hero-subtitle">
+        Real-time AI identity recognition, facial vector matching, and automated attendance intelligence.
+      </p>
+    </div>
+    
+    <div class="hero-telemetry">
+      <div class="telemetry-item neon-green">
+        <span class="status-pulse-dot"></span>
+        <span>AI ENGINE: ONLINE</span>
+      </div>
+      <div class="telemetry-item neon-cyan">
+        <i class="fas fa-camera"></i>
+        <span>SENSOR: ACTIVE</span>
+      </div>
+      <a href="{{ url_for('attendance.live_attendance') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-eye"></i>
+        <span>LAUNCH SCANNER</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- 4 Key Biometric Stat Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <span class="stat-label">TOTAL IDENTITIES</span>
+      <div class="stat-icon-wrapper stat-icon-cyan">
+        <i class="fas fa-id-card-clip"></i>
+      </div>
+    </div>
+    <div class="stat-value neon-cyan" id="statTotalStudents">{{ stats.total_students }}</div>
+    <div class="stat-subtext">ENROLLED BIOMETRIC PROFILES</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <span class="stat-label">PRESENT TODAY</span>
+      <div class="stat-icon-wrapper stat-icon-green">
+        <i class="fas fa-user-check"></i>
+      </div>
+    </div>
+    <div class="stat-value neon-green" id="statPresentToday">{{ stats.present_today }}</div>
+    <div class="stat-subtext">VERIFIED IDENTITIES TODAY</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <span class="stat-label">ABSENT TODAY</span>
+      <div class="stat-icon-wrapper stat-icon-pink">
+        <i class="fas fa-user-xmark"></i>
+      </div>
+    </div>
+    <div class="stat-value neon-pink" id="statAbsentToday">{{ stats.absent_today }}</div>
+    <div class="stat-subtext">UNRECORDED PROFILES</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <span class="stat-label">ATTENDANCE RATE</span>
+      <div class="stat-icon-wrapper stat-icon-purple">
+        <i class="fas fa-chart-pie"></i>
+      </div>
+    </div>
+    <div class="stat-value neon-purple" id="statAttendancePct">{{ stats.attendance_percentage }}%</div>
+    <div class="stat-subtext">DAILY VERIFICATION QUOTA</div>
+  </div>
+</div>
+
+<!-- 7-Day Attendance Trend HUD Chart -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      <i class="fas fa-chart-simple neon-cyan"></i>
+      <span>7-DAY ATTENDANCE TELEMETRY</span>
+    </div>
+    <span class="badge badge-info"><i class="fas fa-arrows-rotate fa-spin"></i> LIVE AUTO-SYNC</span>
+  </div>
+  <div class="card-body">
+    <div style="height: 280px; width: 100%;">
+      <canvas id="attendanceChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Biometric Activity Table -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      <i class="fas fa-bolt neon-cyan"></i>
+      <span>RECENT BIOMETRIC ACTIVITY</span>
+    </div>
+    <a href="{{ url_for('attendance.attendance_list') }}" class="btn btn-secondary btn-sm">
+      <span>VIEW FULL LOGS</span>
+      <i class="fas fa-arrow-right"></i>
+    </a>
+  </div>
+  <div class="card-body" style="padding: 0;">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>IDENTITY NAME</th>
+            <th>USN CODE</th>
+            <th>DATE</th>
+            <th>TIMESTAMP</th>
+            <th>STATUS</th>
+            <th>MATCH CONFIDENCE</th>
+          </tr>
+        </thead>
+        <tbody id="recentAttendanceBody">
+          {% if stats.recent_attendance %}
+            {% for item in stats.recent_attendance %}
+            <tr>
+              <td><strong class="neon-cyan">{{ item.name }}</strong></td>
+              <td><code style="color: var(--neon-purple); font-weight: bold;">{{ item.usn }}</code></td>
+              <td>{{ item.date }}</td>
+              <td>{{ item.time }}</td>
+              <td><span class="badge badge-success"><i class="fas fa-circle-check"></i> {{ item.status }}</span></td>
+              <td><strong style="color: var(--neon-cyan);">{{ item.confidence }}%</strong></td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 28px;">
+                <i class="fas fa-terminal" style="font-size: 24px; margin-bottom: 8px; display: block; color: var(--neon-cyan);"></i>
+                No biometric check-ins registered for current cycle.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

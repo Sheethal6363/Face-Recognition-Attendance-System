@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}VYRON — Attendance Intelligence{% endblock %}
+{% block header_title %}Attendance Intelligence{% endblock %}
+
+{% block content %}
+<!-- Futuristic Filter Toolbar -->
+<div class="card" style="margin-bottom: 20px;">
+  <div class="card-body" style="padding: 16px 20px;">
+    <form method="GET" action="{{ url_for('attendance.attendance_list') }}" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+      
+      <div style="flex: 2; min-width: 180px;">
+        <input type="text" name="q" class="form-control" placeholder="QUERY BY IDENTITY NAME OR USN..." value="{{ search_query }}">
+      </div>
+
+      <div style="flex: 1; min-width: 150px;">
+        <input type="date" name="date" class="form-control" value="{{ date_filter }}" title="Filter by date">
+      </div>
+
+      <div style="flex: 1; min-width: 160px;">
+        <select name="department" class="form-select">
+          <option value="">ALL DEPARTMENTS</option>
+          {% for dept in departments %}
+            <option value="{{ dept }}" {% if dept_filter == dept %}selected{% endif %}>{{ dept }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="flex: 1; min-width: 120px;">
+        <select name="status" class="form-select">
+          <option value="">ALL STATUSES</option>
+          <option value="Present" {% if status_filter == 'Present' %}selected{% endif %}>Present</option>
+          <option value="Late" {% if status_filter == 'Late' %}selected{% endif %}>Late</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-sm" style="padding: 10px 16px;">
+        <i class="fas fa-filter"></i> APPLY
+      </button>
+
+      {% if date_filter or search_query or dept_filter or status_filter %}
+        <a href="{{ url_for('attendance.attendance_list') }}" class="btn btn-secondary btn-sm" style="padding: 10px 16px;">
+          <i class="fas fa-times"></i> RESET
+        </a>
+      {% endif %}
+
+      <a href="{{ url_for('attendance.export_attendance_csv', start_date=date_filter, department=dept_filter) }}" class="btn btn-success btn-sm" style="padding: 10px 16px; margin-left: auto;">
+        <i class="fas fa-file-csv"></i> EXPORT CSV DATA
+      </a>
+    </form>
+  </div>
+</div>
+
+<!-- Attendance Intelligence Records Table -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      <i class="fas fa-clipboard-check neon-cyan"></i>
+      <span>VERIFIED BIOMETRIC ATTENDANCE LOG ({{ records|length }} ENTRIES)</span>
+    </div>
+  </div>
+
+  <div class="card-body" style="padding: 0;">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>IDENTITY NAME</th>
+            <th>USN CODE</th>
+            <th>DEPARTMENT</th>
+            <th>DATE</th>
+            <th>TIMESTAMP</th>
+            <th>STATUS</th>
+            <th>MATCH CONFIDENCE</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if records %}
+            {% for r in records %}
+            <tr>
+              <td><strong class="neon-cyan">{{ r.name }}</strong></td>
+              <td><code style="color: var(--neon-purple); font-weight: bold;">{{ r.usn }}</code></td>
+              <td>{{ r.student_ref.department if r.student_ref else 'N/A' }}</td>
+              <td>{{ r.date }}</td>
+              <td>{{ r.time }}</td>
+              <td><span class="badge badge-success"><i class="fas fa-circle-check"></i> {{ r.status }}</span></td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style="width: 70px; height: 6px; background: rgba(0, 245, 255, 0.1); border-radius: 3px; overflow: hidden; border: 1px solid rgba(0, 245, 255, 0.2);">
+                    <div style="width: {{ r.confidence }}%; height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));"></div>
+                  </div>
+                  <strong style="color: var(--neon-cyan); font-family: 'Rajdhani', sans-serif;">{{ r.confidence }}%</strong>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 36px;">
+                <i class="fas fa-calendar-xmark neon-pink" style="font-size: 32px; margin-bottom: 10px; display: block;"></i>
+                No biometric records match the selected intelligence query.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}VYRON — Register New Identity{% endblock %}
+{% block header_title %}Identity Enrollment{% endblock %}
+
+{% block content %}
+<!-- 4-Step Wizard Header -->
+<div class="wizard-steps-container">
+  <div class="wizard-step active">
+    <div class="wizard-step-num">STEP 01</div>
+    <div class="wizard-step-title">Personal Data</div>
+  </div>
+  <div class="wizard-step active">
+    <div class="wizard-step-num">STEP 02</div>
+    <div class="wizard-step-title">Biometric Capture</div>
+  </div>
+  <div class="wizard-step">
+    <div class="wizard-step-num">STEP 03</div>
+    <div class="wizard-step-title">Vectorization</div>
+  </div>
+  <div class="wizard-step">
+    <div class="wizard-step-num">STEP 04</div>
+    <div class="wizard-step-title">Enrollment Complete</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      <i class="fas fa-user-plus neon-cyan"></i>
+      <span>REGISTER NEW IDENTITY PROFILE</span>
+    </div>
+    <span class="badge badge-info"><i class="fas fa-shield-halved"></i> 128-D VECTOR ENCRYPTION</span>
+  </div>
+
+  <div class="card-body">
+    <div id="cameraStatus" class="alert alert-info" style="display: none;"></div>
+
+    <form id="registrationForm" method="POST" action="{{ url_for('students.register_student') }}">
+      <!-- Hidden base64 image field -->
+      <input type="hidden" name="image_data" id="imageDataInput" required>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px;">
+        
+        <!-- Left Column: Academic & Personal Data -->
+        <div>
+          <div style="font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700; color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px;">
+            [ 01 // IDENTITY DOSSIER ]
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="name">Full Identity Name *</label>
+            <input type="text" class="form-control" id="name" name="name" placeholder="e.g. Sheethal Kumar" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="usn">USN (Unique Student Number) *</label>
+            <input type="text" class="form-control" id="usn" name="usn" placeholder="e.g. 4MH23CS139" required style="text-transform: uppercase;">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="department">Department *</label>
+              <select class="form-select" id="department" name="department" required>
+                <option value="">Select Department</option>
+                <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                <option value="Information Science & Engineering">Information Science & Engineering</option>
+                <option value="Artificial Intelligence & ML">Artificial Intelligence & ML</option>
+                <option value="Electronics & Communication">Electronics & Communication</option>
+                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                <option value="Civil Engineering">Civil Engineering</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="semester">Semester *</label>
+              <select class="form-select" id="semester" name="semester" required>
+                <option value="">Select Sem</option>
+                <option value="1">Sem 1</option>
+                <option value="2">Sem 2</option>
+                <option value="3">Sem 3</option>
+                <option value="4">Sem 4</option>
+                <option value="5">Sem 5</option>
+                <option value="6">Sem 6</option>
+                <option value="7">Sem 7</option>
+                <option value="8">Sem 8</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="section">Section *</label>
+              <input type="text" class="form-control" id="section" name="section" placeholder="e.g. A" required maxlength="2" style="text-transform: uppercase;">
+            </div>
+          </div>
+
+          <div style="font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700; color: var(--neon-purple); text-transform: uppercase; letter-spacing: 1.5px; margin: 20px 0 16px 0;">
+            [ 02 // CONTACT CHANNELS ]
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="email">Email Address</label>
+              <input type="email" class="form-control" id="email" name="email" placeholder="student@college.edu">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="phone">Phone Contact</label>
+              <input type="tel" class="form-control" id="phone" name="phone" placeholder="+91 9876543210">
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Biometric HUD Scanner -->
+        <div>
+          <div style="font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700; color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px;">
+            [ 03 // OPTICAL SENSOR CAPTURE ]
+          </div>
+
+          <div class="biometric-scanner-hud" id="cameraBox">
+            <!-- Corner Brackets -->
+            <div class="hud-corner hud-corner-tl"></div>
+            <div class="hud-corner hud-corner-tr"></div>
+            <div class="hud-corner hud-corner-bl"></div>
+            <div class="hud-corner hud-corner-br"></div>
+
+            <!-- Scan Line -->
+            <div class="scan-line" id="hudScanLine"></div>
+
+            <!-- Target Reticle -->
+            <div class="hud-target-reticle"></div>
+
+            <video id="webcamVideo" class="camera-video" autoplay playsinline muted></video>
+            <img id="capturedPreview" style="display: none; width: 100%; height: auto; object-fit: cover;" alt="Captured Biometric Face">
+
+            <div class="hud-telemetry-overlay">
+              <span>SENSOR: ACTIVE</span>
+              <span>AI TARGET: LOCKING</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 16px; justify-content: center; flex-wrap: wrap;">
+            <button type="button" id="startCamBtn" class="btn btn-secondary btn-sm">
+              <i class="fas fa-video"></i> RESTART SENSOR
+            </button>
+            <button type="button" id="captureBtn" class="btn btn-primary">
+              <i class="fas fa-camera"></i> CAPTURE BIOMETRIC
+            </button>
+            <button type="button" id="retakeBtn" class="btn btn-secondary btn-sm" style="display: none;">
+              <i class="fas fa-redo"></i> RETAKE SCAN
+            </button>
+          </div>
+
+          <div style="margin-top: 16px; padding: 12px; background: rgba(0, 245, 255, 0.03); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: 'Rajdhani', sans-serif; font-size: 12px; color: var(--text-secondary);">
+            <i class="fas fa-circle-info neon-cyan" style="margin-right: 6px;"></i>
+            <strong>SENSOR PROTOCOL:</strong> Align facial profile within the HUD target reticle. Ensure adequate frontal illumination. Exactly 1 subject must occupy the sensor frame.
+          </div>
+        </div>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid var(--border-color); margin: 28px 0;">
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <a href="{{ url_for('students.students_list') }}" class="btn btn-secondary">CANCEL</a>
+        <button type="submit" id="submitBtn" class="btn btn-success" style="padding: 11px 28px;">
+          <i class="fas fa-check-circle"></i> INITIALIZE & ENROLL IDENTITY
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const cam = new FaceCameraManager({
+      videoId: 'webcamVideo',
+      previewId: 'capturedPreview',
+      statusId: 'cameraStatus',
+      inputId: 'imageDataInput',
+      scanLineId: 'hudScanLine'
+    });
+
+    const startBtn = document.getElementById('startCamBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const retakeBtn = document.getElementById('retakeBtn');
+    const previewImg = document.getElementById('capturedPreview');
+    const videoEl = document.getElementById('webcamVideo');
+    const reticle = document.querySelector('.hud-target-reticle');
+    const scanline = document.getElementById('hudScanLine');
+    const form = document.getElementById('registrationForm');
+
+    // Auto-start camera
+    await cam.startCamera();
+
+    startBtn.addEventListener('click', async () => {
+      await cam.startCamera();
+    });
+
+    captureBtn.addEventListener('click', () => {
+      const dataUrl = cam.captureSnapshot();
+      if (dataUrl) {
+        videoEl.style.display = 'none';
+        if (reticle) reticle.style.display = 'none';
+        if (scanline) scanline.style.display = 'none';
+        previewImg.style.display = 'block';
+        retakeBtn.style.display = 'inline-flex';
+        captureBtn.style.display = 'none';
+      }
+    });
+
+    retakeBtn.addEventListener('click', () => {
+      document.getElementById('imageDataInput').value = '';
+      previewImg.style.display = 'none';
+      videoEl.style.display = 'block';
+      if (reticle) reticle.style.display = 'block';
+      if (scanline) scanline.style.display = 'block';
+      retakeBtn.style.display = 'none';
+      captureBtn.style.display = 'inline-flex';
+    });
+
+    form.addEventListener('submit', (e) => {
+      const imgInput = document.getElementById('imageDataInput').value;
+      if (!imgInput) {
+        e.preventDefault();
+        cam.showStatus('VALIDATION ERROR: Please capture a biometric face profile prior to submission.', 'danger');
+      }
+    });
+  });
+</script>
+{% endblock %}
