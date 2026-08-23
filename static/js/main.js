@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.documentElement.classList.remove('light-theme');
       document.documentElement.classList.add('dark-theme');
       if (themeLabel) themeLabel.textContent = 'CYBER DARK';
-      if (themeIcon) themeIcon.className = 'fas fa-moon neon-cyan';
+      if (themeIcon) themeIcon.className = 'fas fa-moon neon-pink';
     }
     localStorage.setItem('vyron_theme', theme);
   }
