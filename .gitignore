@@ -31,6 +31,8 @@ instance/
 # Models and Large Datasets
 trainer.yml
 *.yml
+!render.yaml
+!render.yml
 *.pkl
 attendance.csv
 lfw_funneled/

@@ -80,3 +80,16 @@ Verify all database constraints, authentication guards, and attendance calculati
 ```bash
 python -m pytest tests/ -v
 ```
+
+---
+
+## 🌐 Deploy to Render
+
+This repository includes a [`render.yaml`](file:///d:/Face_recognition_attendance_system/render.yaml) blueprint specification for 1-click deployment on Render:
+
+1. Push your repository to GitHub.
+2. Log into [Render Dashboard](https://dashboard.render.com/).
+3. Click **New +** → **Blueprint**.
+4. Connect this GitHub repository (`Face-Recognition-Attendance-System`).
+5. Render will automatically detect [`render.yaml`](file:///d:/Face_recognition_attendance_system/render.yaml), install dependencies with `pip`, launch the WSGI server with `gunicorn app:app`, and generate secure environment keys.
+

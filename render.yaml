@@ -1,0 +1,28 @@
+services:
+  # VYRON — AI Biometric Attendance System Web Service
+  - type: web
+    name: face-recognition-attendance-system
+    runtime: python
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    healthCheckPath: /login
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FACE_MATCH_THRESHOLD
+        value: 0.50
+      - key: ATTENDANCE_COOLDOWN_SECONDS
+        value: 30
+      # Optional: To use Render PostgreSQL, create a database service and link DATABASE_URL:
+      # - key: DATABASE_URL
+      #   fromDatabase:
+      #     name: attendance-db
+      #     property: connectionString

@@ -22,12 +22,19 @@ class BaseConfig:
     SESSION_COOKIE_SAMESITE = 'Lax'
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload
 
+def _get_db_uri(default_sqlite=True):
+    db_url = os.environ.get('DATABASE_URL')
+    if db_url:
+        if db_url.startswith('postgres://'):
+            return db_url.replace('postgres://', 'postgresql://', 1)
+        return db_url
+    if default_sqlite:
+        return f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'attendance.db')}"
+    return None
+
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL', 
-        f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'attendance.db')}"
-    )
+    SQLALCHEMY_DATABASE_URI = _get_db_uri()
 
 class TestingConfig(BaseConfig):
     TESTING = True
@@ -38,10 +45,7 @@ class TestingConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL', 
-        f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'attendance.db')}"
-    )
+    SQLALCHEMY_DATABASE_URI = _get_db_uri()
 
 config_by_name = {
     'development': DevelopmentConfig,

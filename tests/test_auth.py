@@ -7,11 +7,13 @@ def app():
     app = create_app('testing')
     with app.app_context():
         db.create_all()
-        # Seed test admin
-        admin = Admin(username='admin')
-        admin.set_password('admin123')
-        db.session.add(admin)
-        db.session.commit()
+        # Ensure test admin exists
+        admin = Admin.query.filter_by(username='admin').first()
+        if not admin:
+            admin = Admin(username='admin')
+            admin.set_password('admin123')
+            db.session.add(admin)
+            db.session.commit()
         yield app
         db.session.remove()
         db.drop_all()
