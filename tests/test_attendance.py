@@ -93,3 +93,18 @@ def test_report_service_csv_export(app):
         csv_text = report_service.export_csv_string(records)
         assert 'Name,USN,Date,Time,Status,Confidence (%)' in csv_text
         assert 'Test Student,TESTUSN,2026-08-20,10:15:30,Present,92.4' in csv_text
+
+def test_system_network_api(app):
+    client = app.test_client()
+    with client.session_transaction() as sess:
+        sess['admin_logged_in'] = True
+        sess['admin_username'] = 'admin'
+
+    res = client.get('/api/system-network')
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data['success'] is True
+    assert 'local_ip' in data
+    assert 'port' in data
+    assert 'attendance_url' in data
+

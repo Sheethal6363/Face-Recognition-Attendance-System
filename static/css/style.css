@@ -1150,10 +1150,177 @@ h1, h2, h3, h4, .font-orbitron {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive Rules */
+/* ==========================================================================
+   Multi-Device & Responsive Layout Components
+   ========================================================================== */
+
+/* Mobile Sidebar Backdrop Overlay */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(9, 5, 12, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 99;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sidebar-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Multi-Device Scanner & Enrollment Grids */
+.live-attendance-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.registration-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.scanner-controls-bar {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Multi-Device Connection & Kiosk Pairing HUD Modal */
+.hud-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(9, 5, 12, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.hud-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.hud-modal-content {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-card);
+  border: 1px solid var(--neon-red);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 40px rgba(255, 0, 85, 0.25), 0 20px 50px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  transform: scale(0.95);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.hud-modal-overlay.active .hud-modal-content {
+  transform: scale(1);
+}
+
+.hud-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(255, 0, 85, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hud-modal-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--neon-red);
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.2s ease;
+}
+
+.hud-modal-close:hover {
+  color: var(--neon-red);
+}
+
+.hud-modal-body {
+  padding: 24px 20px;
+}
+
+.network-url-card {
+  background: rgba(18, 9, 23, 0.9);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+
+.device-connect-btn {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   Multi-Device Responsive Breakpoints
+   ========================================================================== */
+
+/* Tablets & Small Laptops (<= 1024px) */
+@media (max-width: 1024px) {
+  .live-attendance-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .registration-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile Devices & Tablets Portrait (<= 992px) */
 @media (max-width: 992px) {
   .sidebar {
     transform: translateX(-100%);
+    box-shadow: 10px 0 35px rgba(0, 0, 0, 0.8);
+    width: 280px;
   }
 
   .sidebar.show {
@@ -1161,18 +1328,143 @@ h1, h2, h3, h4, .font-orbitron {
   }
 
   .main-content {
-    margin-left: 0;
+    margin-left: 0 !important;
+    padding-bottom: env(safe-area-inset-bottom, 20px);
   }
 
   .menu-toggle-btn {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 0, 85, 0.1);
+    border: 1px solid var(--neon-red);
+    color: var(--neon-red);
+    cursor: pointer;
+  }
+
+  .top-command-bar {
+    padding: 0 16px;
+    height: 64px;
   }
 
   .page-body {
-    padding: 20px 16px;
+    padding: 16px 14px;
   }
 
   .wizard-steps-container {
     grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .hero-command-banner .hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .hero-telemetry {
+    width: 100%;
+    justify-content: space-between;
   }
 }
+
+/* Smartphones (<= 768px) */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 14px 16px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .top-command-bar .hud-status-chip {
+    display: none;
+  }
+
+  .hide-mobile-sm {
+    display: none;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .table th, .table td {
+    padding: 10px 12px;
+    font-size: 12.5px;
+  }
+
+  .biometric-scanner-hud {
+    border-radius: var(--radius-md);
+  }
+
+  .scanner-controls-bar {
+    gap: 8px;
+  }
+
+  .scanner-controls-bar .btn,
+  .scanner-controls-bar .form-select {
+    min-height: 42px;
+  }
+
+  .btn {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Compact Smartphones (<= 480px) */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .wizard-steps-container {
+    grid-template-columns: 1fr;
+  }
+
+  .header-title-hud {
+    font-size: 13px;
+  }
+
+  .header-title-hud .hud-badge-prefix {
+    display: none;
+  }
+
+  .top-bar-right {
+    gap: 6px;
+  }
+
+  .scanner-controls-bar .btn {
+    flex: 1 1 calc(50% - 8px);
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .scanner-controls-bar .form-select {
+    flex: 1 1 100%;
+    max-width: 100% !important;
+  }
+
+  .login-terminal-box {
+    padding: 28px 20px;
+  }
+}
+

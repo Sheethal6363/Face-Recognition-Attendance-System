@@ -25,7 +25,7 @@
 </div>
 
 <div class="card">
-  <div class="card-header">
+  <div class="card-header" style="flex-wrap: wrap; gap: 8px;">
     <div class="card-title">
       <i class="fas fa-user-plus neon-cyan"></i>
       <span>REGISTER NEW IDENTITY PROFILE</span>
@@ -40,10 +40,10 @@
       <!-- Hidden base64 image field -->
       <input type="hidden" name="image_data" id="imageDataInput" required>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px;">
+      <div class="registration-grid">
         
         <!-- Left Column: Academic & Personal Data -->
-        <div>
+        <div class="form-column">
           <div style="font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700; color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px;">
             [ 01 // IDENTITY DOSSIER ]
           </div>
@@ -111,7 +111,7 @@
         </div>
 
         <!-- Right Column: Biometric HUD Scanner -->
-        <div>
+        <div class="camera-column">
           <div style="font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700; color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px;">
             [ 03 // OPTICAL SENSOR CAPTURE ]
           </div>
@@ -129,19 +129,25 @@
             <!-- Target Reticle -->
             <div class="hud-target-reticle"></div>
 
-            <video id="webcamVideo" class="camera-video" autoplay playsinline muted></video>
+            <video id="webcamVideo" class="camera-video" autoplay playsinline webkit-playsinline muted></video>
             <img id="capturedPreview" style="display: none; width: 100%; height: auto; object-fit: cover;" alt="Captured Biometric Face">
 
             <div class="hud-telemetry-overlay">
-              <span>SENSOR: ACTIVE</span>
-              <span>AI TARGET: LOCKING</span>
+              <span id="regSensorStatusText">SENSOR: ACTIVE</span>
+              <span id="regSensorFacingText">FRONT CAMERA</span>
             </div>
           </div>
 
-          <div style="display: flex; gap: 12px; margin-top: 16px; justify-content: center; flex-wrap: wrap;">
+          <div class="scanner-controls-bar" style="margin-top: 16px;">
             <button type="button" id="startCamBtn" class="btn btn-secondary btn-sm">
-              <i class="fas fa-video"></i> RESTART SENSOR
+              <i class="fas fa-video"></i> RESTART
             </button>
+            <button type="button" id="flipCamBtn" class="btn btn-secondary btn-sm" title="Flip Camera for Mobile / Tablet">
+              <i class="fas fa-camera-rotate"></i> FLIP CAMERA
+            </button>
+            <select id="regCameraDeviceSelect" class="form-select form-select-sm" style="max-width: 170px; display: inline-block;">
+              <option value="">Default Optical Sensor</option>
+            </select>
             <button type="button" id="captureBtn" class="btn btn-primary">
               <i class="fas fa-camera"></i> CAPTURE BIOMETRIC
             </button>
@@ -150,7 +156,7 @@
             </button>
           </div>
 
-          <div style="margin-top: 16px; padding: 12px; background: rgba(0, 245, 255, 0.03); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: 'Rajdhani', sans-serif; font-size: 12px; color: var(--text-secondary);">
+          <div style="margin-top: 16px; padding: 12px; background: rgba(255, 0, 85, 0.04); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: 'Rajdhani', sans-serif; font-size: 12px; color: var(--text-secondary);">
             <i class="fas fa-circle-info neon-cyan" style="margin-right: 6px;"></i>
             <strong>SENSOR PROTOCOL:</strong> Align facial profile within the HUD target reticle. Ensure adequate frontal illumination. Exactly 1 subject must occupy the sensor frame.
           </div>
@@ -159,7 +165,7 @@
 
       <hr style="border: none; border-top: 1px solid var(--border-color); margin: 28px 0;">
 
-      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+      <div style="display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap;">
         <a href="{{ url_for('students.students_list') }}" class="btn btn-secondary">CANCEL</a>
         <button type="submit" id="submitBtn" class="btn btn-success" style="padding: 11px 28px;">
           <i class="fas fa-check-circle"></i> INITIALIZE & ENROLL IDENTITY
@@ -179,10 +185,13 @@
       previewId: 'capturedPreview',
       statusId: 'cameraStatus',
       inputId: 'imageDataInput',
-      scanLineId: 'hudScanLine'
+      scanLineId: 'hudScanLine',
+      deviceSelectId: 'regCameraDeviceSelect'
     });
 
     const startBtn = document.getElementById('startCamBtn');
+    const flipBtn = document.getElementById('flipCamBtn');
+    const deviceSelect = document.getElementById('regCameraDeviceSelect');
     const captureBtn = document.getElementById('captureBtn');
     const retakeBtn = document.getElementById('retakeBtn');
     const previewImg = document.getElementById('capturedPreview');
@@ -190,13 +199,37 @@
     const reticle = document.querySelector('.hud-target-reticle');
     const scanline = document.getElementById('hudScanLine');
     const form = document.getElementById('registrationForm');
+    const facingText = document.getElementById('regSensorFacingText');
 
     // Auto-start camera
     await cam.startCamera();
+    if (facingText) {
+      facingText.textContent = (cam.facingMode === 'user') ? 'FRONT CAMERA' : 'REAR CAMERA';
+    }
 
     startBtn.addEventListener('click', async () => {
       await cam.startCamera();
+      if (facingText) {
+        facingText.textContent = (cam.facingMode === 'user') ? 'FRONT CAMERA' : 'REAR CAMERA';
+      }
     });
+
+    if (flipBtn) {
+      flipBtn.addEventListener('click', async () => {
+        await cam.flipCamera();
+        if (facingText) {
+          facingText.textContent = (cam.facingMode === 'user') ? 'FRONT CAMERA' : 'REAR CAMERA';
+        }
+      });
+    }
+
+    if (deviceSelect) {
+      deviceSelect.addEventListener('change', async (e) => {
+        if (e.target.value) {
+          await cam.selectDevice(e.target.value);
+        }
+      });
+    }
 
     captureBtn.addEventListener('click', () => {
       const dataUrl = cam.captureSnapshot();

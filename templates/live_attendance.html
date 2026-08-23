@@ -4,22 +4,24 @@
 {% block header_title %}Live Recognition Console{% endblock %}
 
 {% block content %}
-<div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: start;">
+<div class="live-attendance-grid">
   
   <!-- Left: Live Optical Biometric Scanner HUD -->
-  <div>
+  <div class="scanner-column">
     <div class="card">
-      <div class="card-header">
+      <div class="card-header" style="flex-wrap: wrap; gap: 8px;">
         <div class="card-title">
           <i class="fas fa-camera neon-cyan"></i>
           <span>REAL-TIME BIOMETRIC SCANNER HUD</span>
         </div>
-        <div id="liveBadge" class="badge badge-success">
-          <span class="status-pulse-dot"></span> SCANNER ACTIVE
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div id="liveBadge" class="badge badge-success">
+            <span class="status-pulse-dot"></span> SCANNER ACTIVE
+          </div>
         </div>
       </div>
 
-      <div class="card-body" style="padding: 18px; text-align: center;">
+      <div class="card-body" style="padding: 16px; text-align: center;">
         <div id="scannerStatus" class="alert alert-info" style="display: none; text-align: left; margin-bottom: 12px;"></div>
 
         <!-- Biometric Scanner HUD Box -->
@@ -33,46 +35,64 @@
           <!-- Active Scan Line -->
           <div class="scan-line" id="hudLiveScanLine"></div>
 
-          <video id="liveWebcamVideo" class="camera-video" autoplay playsinline muted></video>
+          <video id="liveWebcamVideo" class="camera-video" autoplay playsinline webkit-playsinline muted></video>
           <canvas id="overlayCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 8;"></canvas>
 
           <div class="hud-telemetry-overlay">
-            <span>OPTICAL SENSOR: 30 FPS</span>
-            <span>AI NEURAL ENGINE: ONLINE</span>
+            <span id="sensorFpsText">OPTICAL SENSOR: 30 FPS</span>
+            <span id="facingLabelText">FRONT SENSOR</span>
           </div>
         </div>
 
-        <div style="display: flex; gap: 12px; margin-top: 18px; justify-content: center; flex-wrap: wrap;">
+        <!-- Multi-Device Optical Controls Bar -->
+        <div class="scanner-controls-bar">
           <button type="button" id="startLiveBtn" class="btn btn-primary btn-sm">
-            <i class="fas fa-play"></i> START SCANNER
+            <i class="fas fa-play"></i> START
           </button>
           <button type="button" id="stopLiveBtn" class="btn btn-secondary btn-sm" style="display: none;">
-            <i class="fas fa-pause"></i> PAUSE SCANNER
+            <i class="fas fa-pause"></i> PAUSE
           </button>
+
+          <!-- Flip Camera for Mobile & Tablet -->
+          <button type="button" id="flipCamBtn" class="btn btn-secondary btn-sm" title="Switch Front / Rear Camera">
+            <i class="fas fa-camera-rotate"></i> FLIP CAMERA
+          </button>
+
+          <!-- Torch / Flashlight (Phones) -->
+          <button type="button" id="toggleTorchBtn" class="btn btn-secondary btn-sm" style="display: none;" title="Toggle Flashlight / Torch">
+            <i class="fas fa-bolt"></i> TORCH
+          </button>
+
+          <!-- Hardware Device Select Dropdown -->
+          <select id="cameraDeviceSelect" class="form-select form-select-sm" style="max-width: 180px; display: inline-block;" title="Select Camera Sensor">
+            <option value="">Default Optical Sensor</option>
+          </select>
+
+          <!-- Server Stream Mode Toggle -->
           <button type="button" id="switchServerStreamBtn" class="btn btn-secondary btn-sm" title="Toggle Direct Server MJPEG Stream">
-            <i class="fas fa-server"></i> SERVER STREAM MODE
+            <i class="fas fa-server"></i> SERVER STREAM
           </button>
         </div>
       </div>
     </div>
 
     <!-- Active Biometric Identity Verification Card -->
-    <div class="card" id="detectionResultCard" style="background: var(--bg-card); border-left: 4px solid var(--neon-cyan);">
-      <div class="card-body" style="padding: 18px 22px;">
-        <div style="font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 1.5px;">
+    <div class="card" id="detectionResultCard" style="background: var(--bg-card); border-left: 4px solid var(--neon-cyan); margin-top: 20px;">
+      <div class="card-body" style="padding: 16px 20px;">
+        <div style="font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 1.5px;">
           [ BIOMETRIC VERIFICATION TELEMETRY ]
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
           <div>
-            <h3 id="detName" class="neon-cyan" style="font-size: 20px; font-weight: 800; margin-bottom: 2px;">
+            <h3 id="detName" class="neon-cyan" style="font-size: 18px; font-weight: 800; margin-bottom: 2px;">
               AWAITING BIOMETRIC SENSOR TARGET...
             </h3>
-            <div id="detUsn" style="font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 600; color: var(--text-secondary);">
+            <div id="detUsn" style="font-family: 'Rajdhani', sans-serif; font-size: 13.5px; font-weight: 600; color: var(--text-secondary);">
               USN CODE: <code>--</code>
             </div>
           </div>
           <div style="text-align: right;">
-            <div id="detConfidence" class="neon-purple" style="font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: 800;">
+            <div id="detConfidence" class="neon-purple" style="font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 800;">
               -- %
             </div>
             <div id="detStatusBadge" style="margin-top: 4px;">
@@ -85,7 +105,7 @@
   </div>
 
   <!-- Right: Today's Verified Check-ins List -->
-  <div>
+  <div class="logs-column">
     <div class="card">
       <div class="card-header">
         <div class="card-title">
@@ -95,7 +115,7 @@
         <span class="badge badge-primary" id="todayCountBadge">{{ stats.present_today }} VERIFIED</span>
       </div>
 
-      <div class="card-body" style="padding: 0; max-height: 500px; overflow-y: auto;">
+      <div class="card-body" style="padding: 0; max-height: 480px; overflow-y: auto;">
         <div class="table-responsive">
           <table class="table">
             <thead>
@@ -131,13 +151,13 @@
     </div>
 
     <!-- AI/ML Neural Architecture Pipeline Card -->
-    <div class="card" style="padding: 20px; font-family: 'Rajdhani', sans-serif; font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+    <div class="card" style="padding: 18px; font-family: 'Rajdhani', sans-serif; font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-top: 20px;">
       <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--neon-cyan); letter-spacing: 1px;">
-        <i class="fas fa-brain neon-cyan" style="margin-right: 6px;"></i> VYRON AI RECOGNITION PIPELINE
+        <i class="fas fa-brain neon-cyan" style="margin-right: 6px;"></i> VYRON AI MULTI-DEVICE PIPELINE
       </h4>
-      <p>1. <strong>Optical Capture:</strong> High-performance 0.25x frame downsampling (30+ FPS).</p>
-      <p>2. <strong>Vectorization:</strong> 128-dimensional Deep Metric face encoding extraction.</p>
-      <p>3. <strong>Neural Matching:</strong> Euclidean distance comparison against cached identity vectors.</p>
+      <p>1. <strong>Hardware Agnostic:</strong> Works seamlessly on Mobile, Tablet & Kiosks.</p>
+      <p>2. <strong>Optical Capture:</strong> High-speed adaptive downsampled frame vectorization.</p>
+      <p>3. <strong>Neural Matching:</strong> 128-D Euclidean distance verification against cache.</p>
       <p>4. <strong>Anti-Proxy Protection:</strong> In-memory 30s cooldown + DB unique daily constraint.</p>
     </div>
   </div>
@@ -153,6 +173,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const overlayCanvas = document.getElementById('overlayCanvas');
   const startBtn = document.getElementById('startLiveBtn');
   const stopBtn = document.getElementById('stopLiveBtn');
+  const flipBtn = document.getElementById('flipCamBtn');
+  const torchBtn = document.getElementById('toggleTorchBtn');
+  const deviceSelect = document.getElementById('cameraDeviceSelect');
   const statusEl = document.getElementById('scannerStatus');
   const detName = document.getElementById('detName');
   const detUsn = document.getElementById('detUsn');
@@ -163,6 +186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const countBadge = document.getElementById('todayCountBadge');
   const switchServerBtn = document.getElementById('switchServerStreamBtn');
   const scanLine = document.getElementById('hudLiveScanLine');
+  const facingLabel = document.getElementById('facingLabelText');
 
   let isServerStream = false;
 
@@ -170,7 +194,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     videoId: 'liveWebcamVideo',
     canvasId: 'overlayCanvas',
     statusId: 'scannerStatus',
-    scanLineId: 'hudLiveScanLine'
+    scanLineId: 'hudLiveScanLine',
+    deviceSelectId: 'cameraDeviceSelect',
+    torchBtnId: 'toggleTorchBtn'
   });
 
   async function startLiveScanningFlow() {
@@ -180,6 +206,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       stopBtn.style.display = 'inline-flex';
       liveBadge.className = 'badge badge-success';
       liveBadge.innerHTML = '<span class="status-pulse-dot"></span> SCANNER ACTIVE';
+      
+      if (facingLabel) {
+        facingLabel.textContent = (camManager.facingMode === 'user') ? 'FRONT SENSOR' : 'REAR SENSOR';
+      }
 
       camManager.startLiveScanning((result) => {
         handleRecognitionResult(result);
@@ -187,52 +217,72 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function drawBoundingBoxes(faces) {
+  function drawBoundingBoxes(faces, scaleX = 1, scaleY = 1) {
     if (!overlayCanvas || !video) return;
     const ctx = overlayCanvas.getContext('2d');
-    overlayCanvas.width = video.videoWidth || 640;
-    overlayCanvas.height = video.videoHeight || 480;
+    
+    // Set internal resolution matching displayed client viewport dimensions
+    const clientW = video.clientWidth || video.videoWidth || 640;
+    const clientH = video.clientHeight || video.videoHeight || 480;
+    overlayCanvas.width = clientW;
+    overlayCanvas.height = clientH;
     ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
+    const nativeW = video.videoWidth || 640;
+    const nativeH = video.videoHeight || 480;
+
+    const ratioX = clientW / nativeW;
+    const ratioY = clientH / nativeH;
+
     faces.forEach(f => {
-      const [top, right, bottom, left] = f.box;
-      const w = right - left;
-      const h = bottom - top;
+      let [top, right, bottom, left] = f.box;
+
+      // Rescale from downsampled API frame to native video frame
+      top = top * scaleY;
+      bottom = bottom * scaleY;
+      left = left * scaleX;
+      right = right * scaleX;
+
+      // Project native video coordinates to displayed client screen coordinates
+      const boxLeft = left * ratioX;
+      const boxTop = top * ratioY;
+      const boxW = (right - left) * ratioX;
+      const boxH = (bottom - top) * ratioY;
 
       ctx.lineWidth = 2.5;
-      ctx.strokeStyle = f.recognized ? '#00F5FF' : '#FF2BD6';
-      ctx.strokeRect(left, top, w, h);
+      ctx.strokeStyle = f.recognized ? '#FF0055' : '#FF2BD6';
+      ctx.strokeRect(boxLeft, boxTop, boxW, boxH);
 
       // Corner accent brackets on box
-      ctx.strokeStyle = f.recognized ? '#39FF88' : '#FF3366';
+      ctx.strokeStyle = f.recognized ? '#00F59B' : '#FF3366';
       ctx.lineWidth = 3.5;
-      const cornerLen = 12;
+      const cornerLen = Math.min(14, boxW / 4);
       // Top-Left
-      ctx.beginPath(); ctx.moveTo(left, top + cornerLen); ctx.lineTo(left, top); ctx.lineTo(left + cornerLen, top); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(boxLeft, boxTop + cornerLen); ctx.lineTo(boxLeft, boxTop); ctx.lineTo(boxLeft + cornerLen, boxTop); ctx.stroke();
       // Top-Right
-      ctx.beginPath(); ctx.moveTo(right - cornerLen, top); ctx.lineTo(right, top); ctx.lineTo(right, top + cornerLen); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(boxLeft + boxW - cornerLen, boxTop); ctx.lineTo(boxLeft + boxW, boxTop); ctx.lineTo(boxLeft + boxW, boxTop + cornerLen); ctx.stroke();
       // Bottom-Left
-      ctx.beginPath(); ctx.moveTo(left, bottom - cornerLen); ctx.lineTo(left, bottom); ctx.lineTo(left + cornerLen, bottom); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(boxLeft, boxTop + boxH - cornerLen); ctx.lineTo(boxLeft, boxTop + boxH); ctx.lineTo(boxLeft + cornerLen, boxTop + boxH); ctx.stroke();
       // Bottom-Right
-      ctx.beginPath(); ctx.moveTo(right - cornerLen, bottom); ctx.lineTo(right, bottom); ctx.lineTo(right, bottom - cornerLen); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(boxLeft + boxW - cornerLen, boxTop + boxH); ctx.lineTo(boxLeft + boxW, boxTop + boxH); ctx.lineTo(boxLeft + boxW, boxTop + boxH - cornerLen); ctx.stroke();
 
-      // Label background banner
-      ctx.fillStyle = f.recognized ? 'rgba(0, 245, 255, 0.9)' : 'rgba(255, 43, 214, 0.9)';
-      const labelText = f.recognized ? `${f.name} [${f.confidence}%]` : 'UNKNOWN IDENTITY';
-      ctx.font = 'bold 12px Orbitron, sans-serif';
+      // Label banner
+      ctx.fillStyle = f.recognized ? 'rgba(255, 0, 85, 0.92)' : 'rgba(255, 43, 214, 0.92)';
+      const labelText = f.recognized ? `${f.name} [${f.confidence}%]` : 'UNKNOWN SUBJECT';
+      ctx.font = 'bold 12px Rajdhani, sans-serif';
       const textWidth = ctx.measureText(labelText).width;
-      ctx.fillRect(left, Math.max(0, top - 24), textWidth + 14, 24);
+      ctx.fillRect(boxLeft, Math.max(0, boxTop - 22), textWidth + 12, 22);
 
       // Label text
-      ctx.fillStyle = '#050510';
-      ctx.fillText(labelText, left + 7, Math.max(16, top - 7));
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(labelText, boxLeft + 6, Math.max(15, boxTop - 6));
     });
   }
 
   function handleRecognitionResult(result) {
     if (!result || !result.faces) return;
     const faces = result.faces;
-    drawBoundingBoxes(faces);
+    drawBoundingBoxes(faces, result._scaleX || 1, result._scaleY || 1);
 
     if (faces.length > 0) {
       const topFace = faces[0];
@@ -283,6 +333,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     liveBadge.className = 'badge badge-secondary';
     liveBadge.innerHTML = '<i class="fas fa-pause"></i> SCANNER PAUSED';
   });
+
+  // Flip Camera button (Front / Back switch for phones & tablets)
+  if (flipBtn) {
+    flipBtn.addEventListener('click', async () => {
+      await camManager.flipCamera();
+      if (facingLabel) {
+        facingLabel.textContent = (camManager.facingMode === 'user') ? 'FRONT SENSOR' : 'REAR SENSOR';
+      }
+    });
+  }
+
+  // Device select dropdown
+  if (deviceSelect) {
+    deviceSelect.addEventListener('change', async (e) => {
+      if (e.target.value) {
+        await camManager.selectDevice(e.target.value);
+      }
+    });
+  }
+
+  // Torch toggle button
+  if (torchBtn) {
+    torchBtn.addEventListener('click', async () => {
+      await camManager.toggleTorch();
+    });
+  }
 
   // Switch to Server MJPEG Stream Mode
   switchServerBtn.addEventListener('click', () => {

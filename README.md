@@ -11,9 +11,13 @@
 
 ## 🌌 Visual & Technological Highlights
 
-* **Cyberpunk Command Center:** Built with neon cyan (`#00F5FF`), neon pink (`#FF2BD6`), and neon purple (`#8B5CFF`) palettes on deep dark surface (`#050510`), with glassmorphism and animated HUD overlays.
-* **Holographic Light Mode:** Dual theme engine with Cyber Dark and Holographic Lab Light mode persisted in `localStorage`.
-* **Live Biometric HUD Scanner:** Optical camera viewfinder with animated scanline, target reticle, and corner bracket targeting.
+* **Cyberpunk Command Center:** Built with neon red (`#FF0055`), neon pink (`#FF2BD6`), and neon purple (`#A855F7`) palettes on obsidian surface (`#09050C`), with glassmorphism and animated HUD overlays.
+* **Multi-Device & Cross-Platform Support:** Fully responsive on iOS/Android smartphones, iPads/tablets, laptops, desktops, and wall-mounted kiosks.
+* **Camera Sensor Switching & Torch:** Flip between front/rear cameras or select external USB webcams; toggle flashlight in low-light environments.
+* **Instant Wi-Fi QR Code Pairing & Kiosk Mode:** Generate pairing QR codes for any phone/tablet on the local network; one-tap Fullscreen Kiosk Mode for dedicated terminals.
+* **Progressive Web App (PWA):** Installable as a standalone app with offline shell caching via Service Worker.
+* **Holographic Light Mode:** Dual theme engine with Cyber Dark and Holographic Light mode persisted in `localStorage`.
+* **Live Biometric HUD Scanner:** Optical camera viewfinder with animated scanline, target reticle, and adaptive bounding box scaling.
 * **128-d Neural Face Vectorization:** Deep residual network extraction and Euclidean distance matching with real-time confidence scores.
 * **Anti-Proxy Protection:** In-memory 30s cooldown timer + Database-level unique constraint on `(student_id, date)` preventing duplicate same-day attendance.
 * **Identity Registry & Dossiers:** Manage student profiles, track class logs, calculate dynamic attendance percentages, and monitor exam eligibility ($\ge 75\%$).
